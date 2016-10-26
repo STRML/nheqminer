@@ -24,17 +24,17 @@
 
 
 static ZcashStratumClient* scSig;
-extern "C" void stratum_sigint_handler(int signum) 
-{ 
-	if (scSig) scSig->disconnect(); 
+extern "C" void stratum_sigint_handler(int signum)
+{
+	if (scSig) scSig->disconnect();
 }
 
 void print_help()
 {
 	std::cout << "Parameters: " << std::endl;
 	std::cout << "\t-h\t\tPrint this help and quit" << std::endl;
-	std::cout << "\t-l [location]\tLocation (eu, usa, hk, jp)" << std::endl;
-	std::cout << "\t-u [username]\tUsername (bitcoinaddress)" << std::endl;
+	std::cout << "\t-l [location]\tStratum server:port" << std::endl;
+	std::cout << "\t-u [username]\tUsername (worker)" << std::endl;
 	std::cout << "\t-p [password]\tPassword (default: x)" << std::endl;
 	std::cout << "\t-t [num_thrds]\tNumber of threads (default: number of sys cores)" << std::endl;
 	std::cout << "\t-d [level]\tDebug print level (0 = print all, 5 = fatal only, default: 2)" << std::endl;
@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
 	std::cout << "Special thanks to tromp for providing optimized CPU equihash solver" << std::endl;
 	std::cout << std::endl;
 
-	std::string location = "eu";
-	std::string user = "1DXnVXrTmcEd77Z6E4zGxkn7fGeHXSGDt1";
+	std::string location = "zec.suprnova.cc:2142";
+	std::string user = "suprnova.1";
 	std::string password = "x";
 	int num_threads = -1;
 	bool benchmark = false;
@@ -146,8 +146,9 @@ int main(int argc, char* argv[])
 
 	if (!benchmark)
 	{
-		std::string host = "equihash." + location + ".nicehash.com";
-		std::string port = "3357";
+		size_t delim = location.find(':');
+		std::string host = location.substr(0, delim);
+		std::string port = location.substr(delim+1);
 
 		std::shared_ptr<boost::asio::io_service> io_service(new boost::asio::io_service);
 
@@ -161,7 +162,7 @@ int main(int argc, char* argv[])
 				api = nullptr;
 			}
 		}
-		
+
 		ZcashMiner miner(num_threads);
 		ZcashStratumClient sc{
 			io_service, &miner, host, port, user, password, 0, 0
@@ -181,11 +182,11 @@ int main(int argc, char* argv[])
 			{
 				double allshares = speed.GetShareSpeed() * 60;
 				double accepted = speed.GetShareOKSpeed() * 60;
-				BOOST_LOG_TRIVIAL(info) << CL_YLW "Speed [" << INTERVAL_SECONDS << " sec]: " << 
+				BOOST_LOG_TRIVIAL(info) << CL_YLW "Speed [" << INTERVAL_SECONDS << " sec]: " <<
 					speed.GetHashSpeed() << " H/s, " <<
-					speed.GetSolutionSpeed() << " Sol/s" << 
-					//accepted << " AS/min, " << 
-					//(allshares - accepted) << " RS/min" 
+					speed.GetSolutionSpeed() << " Sol/s" <<
+					//accepted << " AS/min, " <<
+					//(allshares - accepted) << " RS/min"
 					CL_N;
 			}
 			if (api) while (api->poll()) { }
