@@ -72,7 +72,7 @@ template <typename Miner, typename Job, typename Solution>
 void StratumClient<Miner, Job, Solution>::startWorking()
 {
     m_work.reset(new std::thread([&]() {
-        workLoop();
+        this->workLoop();
     }));
 }
 
@@ -377,7 +377,7 @@ void StratumClient<Miner, Job, Solution>::processReponse(const Object& responseO
             p_miner->rejectedSolution(m_stale);
         }
         break;
-    
+
     }
 }
 
